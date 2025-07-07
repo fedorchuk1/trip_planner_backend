@@ -37,17 +37,17 @@ class PreliminaryPlanInputArgs(BaseModel):
     """Example:
 {    
     "destination": "Paris",
-    "consesnsus_dates": ["2025-08-01", "2025-08-02", "2025-08-03"],
+    "consesnsus_dates": ["2025-08-01", "2025-08-02", "2025-08-03", "2025-08-04", "2025-08-05", "2025-08-06"],
     "grouped_preferences": [
         {
             "user_id": "1234",
             "user_name": "Jenya",
-            "preferred_length_days": 3,
             "raw_preferences": ["museums", "restaurants"]
         },
         {
             "user_id": "1235",
             "user_name": "Illia",
+            "preferred_length_days": 3,
             "raw_preferences": ["parks", "restaurants", "landmarks"]
         }
     ]
