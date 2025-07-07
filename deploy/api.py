@@ -8,6 +8,7 @@ from trip_planner.flights_crew import run as run_flights_team
 from trip_planner.models.itinerary import Itinerary
 from trip_planner.models.flights import FlightRoutePlan
 from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse
+from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
 
 app = FastAPI(title="Trip Planner API", version="0.1.0")
 
@@ -64,3 +65,8 @@ async def plan_itinerary(request: PlanItineraryRequest):
     #         status_code=500,
     #         detail=f"Error processing itinerary: {str(e)}"
     #     )
+
+
+@app.post("/preliminary_plan", response_model=ProposedPlans)
+async def plan_preliminary_activities(request: PreliminaryPlanInputArgs):
+    return await run_agent(request)
