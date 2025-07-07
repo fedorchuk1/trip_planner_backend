@@ -7,10 +7,12 @@ from phoenix.otel import register
 
 from trip_planner.itinerary_crew import run_team
 from trip_planner.flights_crew import run as run_flights_team
+from trip_planner.hotels_crew import run as run_hotels_team
 from trip_planner.models.itinerary import Itinerary
 
 from trip_planner.models.flights import FlightsPlannerResponse
-from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse, RefineItineraryRequest
+from trip_planner.models.hotels import HotelsPlannerResponse
+from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse, RefineItineraryRequest, HotelsResponse, HotelsRequest
 from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
 
 
@@ -21,9 +23,20 @@ tracer_provider = register(
     auto_instrument=True
 )
 
-
-
 app = FastAPI(title="Trip Planner API", version="0.1.0")
+@app.post("/hotels", response_model=HotelsResponse)
+async def get_hotels(request: HotelsRequest):
+    """Get hotels for a given itinerary. This shit can fail in response parsing."""
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+
+    cities = []
+    dates = []
+    for plan in request.itinerary.city_plans:
+        cities.append(plan.city)
+        dates.append(f"{plan.arrival_date} to {plan.departure_date}")
+    
+    hotels_plan: HotelsPlannerResponse = await run_hotels_team(cities, dates)
+    return HotelsResponse(conversation_id=conversation_id, hotels_plan=hotels_plan, message="Hotels found successfully", timestamp=datetime.now())
 
 @app.post("/flights", response_model=FlightsResponse)
 async def get_flights(request: FlightsRequest):
