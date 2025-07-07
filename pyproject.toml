@@ -10,7 +10,12 @@ dependencies = [
     "setuptools==80.9.0",
     "arize-phoenix-otel==0.12.1",
     "openinference-instrumentation-crewai==0.1.10",
-    "google-search-results==2.4.2"
+    "google-search-results==2.4.2",
+    "fastapi==0.115.14",
+    "agno>=1.7.1",
+    "groq>=0.29.0",
+    "arize-otel>=0.8.2",
+    "openinference-instrumentation-agno>=0.1.8",
 ]
 
 [tool.setuptools.packages.find]
