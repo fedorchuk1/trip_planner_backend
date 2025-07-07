@@ -1,6 +1,4 @@
-import uuid
 import asyncio
-from datetime import datetime
 from textwrap import dedent
 
 from fastapi import FastAPI, HTTPException
@@ -28,7 +26,6 @@ app = FastAPI(title="Trip Planner API", version="0.1.0")
 @app.post("/get_hotels_and_flights", response_model=HotelsAndFlightsResponse)
 async def get_hotels_and_flights(request: HotelsAndFlightsRequest):
     """Get hotels and flights for a given itinerary."""
-    conversation_id = request.conversation_id or str(uuid.uuid4())
 
     cities = []
     dates = []
@@ -48,18 +45,15 @@ async def get_hotels_and_flights(request: HotelsAndFlightsRequest):
     flights_plan: FlightsPlannerResponse = flights_plan
     
     return HotelsAndFlightsResponse(
-        conversation_id=conversation_id,
         hotels_plan=hotels_plan,
         flights_plan=flights_plan,
         message="Hotels and flights found successfully",
-        timestamp=datetime.now()
     )
 
 
 @app.post("/hotels", response_model=HotelsResponse)
 async def get_hotels(request: HotelsRequest):
     """Get hotels for a given itinerary. This shit can fail in response parsing."""
-    conversation_id = request.conversation_id or str(uuid.uuid4())
 
     cities = []
     dates = []
@@ -68,7 +62,7 @@ async def get_hotels(request: HotelsRequest):
         dates.append(f"{plan.arrival_date} to {plan.departure_date}")
     
     hotels_plan: HotelsPlannerResponse = await run_hotels_team(cities, dates)
-    return HotelsResponse(conversation_id=conversation_id, hotels_plan=hotels_plan, message="Hotels found successfully", timestamp=datetime.now())
+    return HotelsResponse(hotels_plan=hotels_plan, message="Hotels found successfully")
 
 @app.post("/flights", response_model=FlightsResponse)
 async def get_flights(request: FlightsRequest):
