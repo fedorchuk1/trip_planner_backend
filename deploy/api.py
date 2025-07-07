@@ -6,9 +6,12 @@ from fastapi import FastAPI, HTTPException
 from phoenix.otel import register
 
 from trip_planner.itinerary_crew import run_team
+from trip_planner.flights_crew import run as run_flights_team
 from trip_planner.models.itinerary import Itinerary
-from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent
-from .models.api import PlanItineraryRequest, PlanItineraryResponse, RefineItineraryRequest
+
+from trip_planner.models.flights import FlightsPlannerResponse
+from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse, RefineItineraryRequest
+from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
 
 
 # configure the Phoenix tracer
@@ -19,8 +22,28 @@ tracer_provider = register(
 )
 
 
+
 app = FastAPI(title="Trip Planner API", version="0.1.0")
 
+@app.post("/flights", response_model=FlightsResponse)
+async def get_flights(request: FlightsRequest):
+    """Get flights for a given itinerary. This shit can fail in response parsing."""
+    
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+    flight_cities = [request.departure_city]
+    flight_dates = []
+    for plan in request.itinerary.city_plans:
+        flight_cities.append(plan.city)
+        flight_dates.append(plan.arrival_date)
+    flight_dates.append(request.itinerary.city_plans[-1].departure_date)
+
+    flights_plan: FlightsPlannerResponse = await run_flights_team(flight_cities, flight_dates)
+   
+    return FlightsResponse(
+        conversation_id=conversation_id, 
+        flights_plan=flights_plan, 
+        message="Flights found successfully", 
+        timestamp=datetime.now())
 
 @app.post("/plan_itinerary", response_model=PlanItineraryResponse)
 async def plan_itinerary(request: PlanItineraryRequest):
