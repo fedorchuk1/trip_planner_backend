@@ -14,7 +14,7 @@ from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequ
 from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
 
 
-# configure the Phoenix tracer
+# # configure the Phoenix tracer
 tracer_provider = register(
     endpoint="http://localhost:6006/v1/traces",
     project_name="agno_trip_planner",
@@ -29,7 +29,6 @@ app = FastAPI(title="Trip Planner API", version="0.1.0")
 async def get_flights(request: FlightsRequest):
     """Get flights for a given itinerary. This shit can fail in response parsing."""
     
-    conversation_id = request.conversation_id or str(uuid.uuid4())
     flight_cities = [request.departure_city]
     flight_dates = []
     for plan in request.itinerary.city_plans:
@@ -40,24 +39,20 @@ async def get_flights(request: FlightsRequest):
     flights_plan: FlightsPlannerResponse = await run_flights_team(flight_cities, flight_dates)
    
     return FlightsResponse(
-        conversation_id=conversation_id, 
         flights_plan=flights_plan, 
-        message="Flights found successfully", 
-        timestamp=datetime.now())
+        message="Flights found successfully",
+    ) 
 
 @app.post("/plan_itinerary", response_model=PlanItineraryResponse)
 async def plan_itinerary(request: PlanItineraryRequest):
     """Plan a trip using the itinerary planner crew"""    
-    conversation_id = request.conversation_id or str(uuid.uuid4())
     try:
         input_query = f"Plan a trip with parameters: {request.traveler_input.model_dump_json()}"
         itinerary: Itinerary = await run_team(input_query)
 
         return PlanItineraryResponse(
-            conversation_id=conversation_id,
             itinerary=itinerary,
             message="Trip planning completed successfully",
-            timestamp=datetime.now()
         )
         
     except Exception as e:
@@ -78,8 +73,15 @@ async def refine_itinerary(request: RefineItineraryRequest):
 
         Itinerary:
         {request.itinerary}
+
+        User feedback:
+        {request.user_feedback}
     """)
-    return await run_team(query)
+    refined_itinerary = await run_team(query)
+    return PlanItineraryResponse(
+        itinerary=refined_itinerary,
+        message="Itinerary refined successfully",
+    )
 
 
 @app.post("/preliminary_plan", response_model=ProposedPlans)
