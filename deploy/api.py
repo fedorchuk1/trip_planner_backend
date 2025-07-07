@@ -4,8 +4,8 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 
 from trip_planner.itinerary_crew import run_team
-from trip_planner.crew_backup import ItineraryPlannerCrew
 from trip_planner.models.itinerary import Itinerary
+from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
 from .models.api import PlanItineraryRequest, PlanItineraryResponse
 
 app = FastAPI(title="Trip Planner API", version="0.1.0")
@@ -43,3 +43,8 @@ async def plan_itinerary(request: PlanItineraryRequest):
     #         status_code=500,
     #         detail=f"Error processing itinerary: {str(e)}"
     #     )
+
+
+@app.post("/preliminary_plan", response_model=ProposedPlans)
+async def plan_preliminary_activities(request: PreliminaryPlanInputArgs):
+    return await run_agent(request)
