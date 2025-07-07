@@ -13,7 +13,7 @@ from trip_planner.tools.agno.flights import get_flights
 from trip_planner.models.flights import Flight, FlightsPlan, FlightsPlannerResponse
 
 llm = LiteLLM(
-    id="groq/llama-3.3-70b-versatile",
+    id="groq/deepseek-r1-distill-llama-70b",
     request_params={
         "num_retries": 3,
     }
