@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from agno.models.litellm import LiteLLM
 
 from trip_planner.tools.agno.flights import get_flights
-from trip_planner.models.flights import Flight, FlightsPlan, FlightRoutePlan
+from trip_planner.models.flights import Flight, FlightsPlan, FlightsPlannerResponse
 
 llm = LiteLLM(
     id="groq/llama-3.3-70b-versatile",
@@ -50,10 +50,10 @@ async def run(flight_cities: list[str], flight_dates: list[str]):
         add_datetime_to_instructions=True,
         show_tool_calls=True,
         markdown=True,
-        response_model=FlightRoutePlan,
+        response_model=FlightsPlannerResponse,
     )
     # query = f"Find flights for the following parameters: {input_parameters}"
-    query = f"Find flights for the following parameters:"
+    query = f"Find flights for the following routes:"
     for i in range(len(flight_cities)-1):
         query += f"\n- Departure city: {flight_cities[i]}, Arrival date: {flight_dates[i]}, Arrival city: {flight_cities[i+1]}"
     if len(flight_cities) > 2:

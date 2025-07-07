@@ -15,10 +15,10 @@ class Flight(BaseModel):
 
 
 class FlightsPlan(BaseModel):
-    flights: list[Flight] = Field(..., description="List of flights")
+    flights: list[Flight] = Field(..., description="List of flights for the route from departure city to arrival city")
     departure_city: str = Field(..., description="Departure city")
     arrival_city: str = Field(..., description="Arrival city")
 
 
-class FlightRoutePlan(BaseModel):
+class FlightsPlannerResponse(BaseModel):
     flights_plans: list[FlightsPlan] = Field(..., description="Flights for all the routes in the plan")

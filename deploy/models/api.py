@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from trip_planner.models.general import TravelerInput
 from trip_planner.models.itinerary import Itinerary
-from trip_planner.models.flights import FlightRoutePlan
+from trip_planner.models.flights import FlightsPlannerResponse
 
 
 class PlanItineraryRequest(BaseModel):
@@ -34,6 +34,6 @@ class FlightsRequest(BaseModel):
 class FlightsResponse(BaseModel):
     """Response model for the flights endpoint"""
     conversation_id: str = Field(..., description="Conversation ID for tracking")
-    flights_plan: FlightRoutePlan = Field(..., description="Flights plan")
+    flights_plan: FlightsPlannerResponse = Field(..., description="Flights plan")
     message: str = Field(..., description="Status message")
     timestamp: datetime = Field(..., description="Response timestamp")

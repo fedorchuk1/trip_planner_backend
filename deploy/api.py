@@ -9,7 +9,7 @@ from trip_planner.itinerary_crew import run_team
 from trip_planner.flights_crew import run as run_flights_team
 from trip_planner.models.itinerary import Itinerary
 
-from trip_planner.models.flights import FlightRoutePlan
+from trip_planner.models.flights import FlightsPlannerResponse
 from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse, RefineItineraryRequest
 from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
 
@@ -34,11 +34,10 @@ async def get_flights(request: FlightsRequest):
     flight_dates = []
     for plan in request.itinerary.city_plans:
         flight_cities.append(plan.city)
-        flight_dates.append(plan.date_range.split("to")[0].strip())
-    flight_dates.append(request.itinerary.city_plans[-1].date_range.split("to")[1].strip())
+        flight_dates.append(plan.arrival_date)
+    flight_dates.append(request.itinerary.city_plans[-1].departure_date)
 
-    
-    flights_plan: FlightRoutePlan = await run_flights_team(flight_cities, flight_dates)
+    flights_plan: FlightsPlannerResponse = await run_flights_team(flight_cities, flight_dates)
    
     return FlightsResponse(
         conversation_id=conversation_id, 
