@@ -28,19 +28,8 @@ async def plan_itinerary(request: PlanItineraryRequest):
         'constraints': ', '.join(request.traveler_input.constraints or [])
     }
     
-    result = await run_team(crew_inputs)
-    # itinerary_crew = ItineraryPlannerCrew().crew()
-    # result = itinerary_crew.kickoff(inputs=crew_inputs)
+    itinerary: Itinerary = await run_team(crew_inputs)
 
-    # itinerary = {}
-    # with open("agno_result.json", "w") as f:
-    # Handle both direct Itinerary objects and raw results
-
-    if isinstance(result, Itinerary):
-        itinerary = result
-    else:
-        itinerary = Itinerary(**result.to_dict()) if hasattr(result, 'to_dict') else result
-    
     return PlanItineraryResponse(
         conversation_id=conversation_id,
         itinerary=itinerary,
