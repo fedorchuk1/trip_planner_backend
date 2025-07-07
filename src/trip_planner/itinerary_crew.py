@@ -10,8 +10,10 @@ from agno.tools.mcp import MCPTools
 from agno.tools.reasoning import ReasoningTools
 from mcp import StdioServerParameters
 
+from trip_planner.prompts.planning_team import INSTRUCTIONS
 from trip_planner.models.itinerary import Itinerary
 from trip_planner.tools.internet_search import get_top_internet_search_results
+
 
 llm = LiteLLM(
     id="groq/llama-3.3-70b-versatile",
@@ -40,8 +42,7 @@ async def run_team(query: str) -> Itinerary:
             tools=[maps_tools],
             instructions=dedent("""\
                 You are an agent that helps find attractions, points of interest,
-                and provides directions in travel destinations. Help plan travel
-                routes and find interesting places to visit for a given location and date.\
+                and provides directions in travel destinations from Google Maps.\
             """),
             add_datetime_to_instructions=True,
         )
@@ -52,10 +53,11 @@ async def run_team(query: str) -> Itinerary:
             model=llm,
             tools=[get_top_internet_search_results],
             instructions=dedent("""\
-                You are an agent that can search the web for information.
+                You are an agent that can search the web for any information related to restaurants, events, etc.
                 Search for information about a given location.\
             """),
             add_datetime_to_instructions=True,
+            tool_call_limit=2,
         )
 
         events_search_agent = Agent(
@@ -67,6 +69,7 @@ async def run_team(query: str) -> Itinerary:
                 You are an agent that can search for the events in the given location and date range.
             """),
             add_datetime_to_instructions=True,
+            tool_call_limit=2,
         )
 
         restaurants_search_agent = Agent(
@@ -78,6 +81,7 @@ async def run_team(query: str) -> Itinerary:
                 You are an agent that can search for the restaurants in the given location and date range.
             """),
             add_datetime_to_instructions=True,
+            tool_call_limit=2,
         )
 
         weather_search_agent = Agent(
@@ -98,16 +102,13 @@ async def run_team(query: str) -> Itinerary:
             model=OpenAIChat("gpt-4.1"),
             members=[
                 web_search_agent,
-                events_search_agent,
-                restaurants_search_agent,
                 maps_agent,
                 weather_search_agent,
+                events_search_agent,
+                restaurants_search_agent,
             ],
             instructions=[
-                "Plan a full itinerary for the trip.",
-                "Continue asking individual team members until you have ALL the information you need.",
-                "Think about the best way to tackle the task.",
-                "Pay attention to travelers preferences when planning the itinerary.",
+                *INSTRUCTIONS,
             ],
             tools=[ReasoningTools(add_instructions=True)],
             response_model=Itinerary,
@@ -116,6 +117,8 @@ async def run_team(query: str) -> Itinerary:
             debug_mode=True,
             show_members_responses=True,
             add_datetime_to_instructions=True,
+            enable_agentic_context=True,
+            tool_call_limit=10
         )
 
         result = await team.arun(query)
