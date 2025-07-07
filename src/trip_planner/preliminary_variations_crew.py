@@ -91,13 +91,16 @@ class ProposedPlans(BaseModel):
     plans: List[PreliminaryPlan]
 
 
-async def run_agent(input_parameters: PreliminaryPlanInputArgs) -> ProposedPlans:
+async def run_agent(input_parameters: PreliminaryPlanInputArgs, reasoning: bool = False) -> ProposedPlans:
     
+    additional_kwargs = {}
+    if reasoning:
+        additional_kwargs["tools"] = [ReasoningTools()]
+
     agent = Agent(
         name="Planner",
         role="Proposes various preliminary trip plans for selected dates",
         model=OpenAIChat("gpt-4o"),
-        tools=[ReasoningTools()],
         instructions=dedent("""\
             You are an agent that, based on the user selected dates, preferences and a travel destination,
             helps find and plan different activites and plan a trip that will satisfy everyone.
@@ -107,6 +110,7 @@ async def run_agent(input_parameters: PreliminaryPlanInputArgs) -> ProposedPlans
         """),
         add_datetime_to_instructions=True,
         response_model=ProposedPlans,
+        **additional_kwargs
     )
 
     query = f"Plan a trip with parameters: {input_parameters.model_dump_json()}"
