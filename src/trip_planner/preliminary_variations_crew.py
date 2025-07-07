@@ -122,7 +122,7 @@ async def run_agent(input_parameters: PreliminaryPlanInputArgs, reasoning: bool 
     query = f"Plan a trip with parameters: {input_parameters.model_dump_json()}"
     result = await agent.arun(query)
     proposition: ProposedPlans = result.content # type: ignore
-    for plan in proposition.plans:
-        plan.base64_image_string = generate_image_for_plan(plan)
-
+    if generate_images:
+        for plan in proposition.plans:
+            plan.base64_image_string = generate_image_for_plan(plan)
     return proposition
