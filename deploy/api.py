@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from trip_planner.itinerary_crew import run_team
 from trip_planner.flights_crew import run as run_flights_team
 from trip_planner.models.itinerary import Itinerary
-from trip_planner.models.flights import FlightsPlan
+from trip_planner.models.flights import FlightRoutePlan
 from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse
 
 app = FastAPI(title="Trip Planner API", version="0.1.0")
@@ -16,13 +16,15 @@ async def get_flights(request: FlightsRequest):
     """Get flights for a given itinerary. This shit can fail in response parsing."""
     
     conversation_id = request.conversation_id or str(uuid.uuid4())
-    flights_inputs = {
-        "departure_date": request.departure_date,
-        "arrival_date": request.arrival_date,
-        "departure_city": request.departure_city,
-        "arrival_city": request.arrival_city
-    }
-    flights_plan: FlightsPlan = await run_flights_team(flights_inputs)
+    flight_cities = [request.departure_city]
+    flight_dates = []
+    for plan in request.itinerary.city_plans:
+        flight_cities.append(plan.city)
+        flight_dates.append(plan.date_range.split("to")[0].strip())
+    flight_dates.append(request.itinerary.city_plans[-1].date_range.split("to")[1].strip())
+
+    
+    flights_plan: FlightRoutePlan = await run_flights_team(flight_cities, flight_dates)
    
     return FlightsResponse(
         conversation_id=conversation_id, 

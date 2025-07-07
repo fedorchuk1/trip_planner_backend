@@ -1,5 +1,5 @@
 import os
-from typing import Any, Type
+from typing import Any, Type, Optional
 
 from agno.tools import tool
 from pydantic import BaseModel, Field
@@ -24,7 +24,7 @@ class Flight(BaseModel):
 
 @tool(
     name="FlightsSearchTool",
-    description="Given a departure and arrival airport, departure and return date, returns available flights. Use ROUND_TRIP type of flight if the trip contains only one city in the itinerary.",
+    description="Given a departure and arrival airport, departure and return date, returns available flights.",
     show_result=True,
     cache_results=False
 )
@@ -32,12 +32,14 @@ def get_flights(
     departure_airport: str,
     arrival_airport: str,
     departure_date: str,
-    return_date: str,
     flight_type: FlightType,
+    return_date: Optional[str] = None,
 ) -> dict:
     """
     This function, given a departure and arrival airport, departure and return date, returns available flights.
-    Use ROUND_TRIP type of flight if the trip contains only one city in the itinerary.
+    You can use ONE_WAY or ROUND_TRIP type of flight if you find it suitable for the user.
+    
+    If you use ONE_WAY type of flight, then return_date MUST be None.
 
     Args:
         departure_airport (str): The departure airport IATA code
