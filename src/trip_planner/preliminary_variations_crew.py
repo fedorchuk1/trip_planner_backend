@@ -42,6 +42,7 @@ class PreliminaryPlanInputArgs(BaseModel):
         {
             "user_id": "1234",
             "user_name": "Jenya",
+            "preferred_length_days": 3,
             "raw_preferences": ["museums", "restaurants"]
         },
         {
@@ -54,6 +55,7 @@ class PreliminaryPlanInputArgs(BaseModel):
 """
     destination: str
     budget: Optional[str] = None
+    preferred_length_days: Optional[int] = None
     consesnsus_dates: List[date]
     grouped_preferences: List[UserPreference]
 
@@ -79,6 +81,9 @@ class DayPlan(BaseModel):
 class PreliminaryPlan(BaseModel):
     duration_days: int
     start_date: date
+    end_date: date
+    name: str
+    summary: str
     day_plans: List[DayPlan] = Field(..., description="Activies per day")
 
 
