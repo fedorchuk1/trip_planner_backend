@@ -1,31 +1,30 @@
-import asyncio
-from datetime import date, datetime
-import os
+from datetime import date
 from textwrap import dedent
 from typing import List, Optional
 
 from agno.agent import Agent
 from agno.models.openai.chat import OpenAIChat
-from agno.team import Team
-from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.tools.mcp import MCPTools
 from agno.tools.reasoning import ReasoningTools
-from mcp import StdioServerParameters
 from pydantic import BaseModel, Field
 from agno.models.litellm import LiteLLM
 
-from trip_planner.models.itinerary import Itinerary
+
+# from phoenix.otel import register
+
+# # configure the Phoenix tracer
+# tracer_provider = register(
+#     endpoint="http://localhost:6006/v1/traces",
+#     project_name="agno_trip_planner",
+#     auto_instrument=True
+# )
 
 
-from phoenix.otel import register
-
-# configure the Phoenix tracer
-tracer_provider = register(
-    endpoint="http://localhost:6006/v1/traces",
-    project_name="agno_trip_planner",
-    auto_instrument=True
+llm = LiteLLM(
+    id="groq/llama-3.3-70b-versatile",
+    request_params={
+        "num_retries": 3,
+    }
 )
-
 
 class UserPreference(BaseModel):
     user_id: str
@@ -100,7 +99,7 @@ async def run_agent(input_parameters: PreliminaryPlanInputArgs, reasoning: bool 
     agent = Agent(
         name="Planner",
         role="Proposes various preliminary trip plans for selected dates",
-        model=OpenAIChat("gpt-4o"),
+        model=llm, #OpenAIChat("gpt-4o"),
         instructions=dedent("""\
             You are an agent that, based on the user selected dates, preferences and a travel destination,
             helps find and plan different activites and plan a trip that will satisfy everyone.
