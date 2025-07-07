@@ -8,6 +8,7 @@ from agno.tools.reasoning import ReasoningTools
 from pydantic import BaseModel, Field
 from agno.models.litellm import LiteLLM
 
+from trip_planner.tools.generate_image import generate_image
 
 # from phoenix.otel import register
 
@@ -82,7 +83,8 @@ class PreliminaryPlan(BaseModel):
     start_date: date
     end_date: date
     name: str
-    summary: str
+    summary: str = Field(..., description="Must accurately, but consicely desribe and summarize planned activities")
+    base64_image_string: Optional[str] = Field(None, description="Internal field, skip or return null")
     day_plans: List[DayPlan] = Field(..., description="Activies per day")
 
 
@@ -90,7 +92,12 @@ class ProposedPlans(BaseModel):
     plans: List[PreliminaryPlan]
 
 
-async def run_agent(input_parameters: PreliminaryPlanInputArgs, reasoning: bool = False) -> ProposedPlans:
+def generate_image_for_plan(plan: PreliminaryPlan):
+    prompt = f"A beautiful stok background image for a trip called '{plan.name}' with the following summary: {plan.summary}"
+    return generate_image(prompt)
+
+
+async def run_agent(input_parameters: PreliminaryPlanInputArgs, reasoning: bool = False, generate_images: bool = True) -> ProposedPlans:
     
     additional_kwargs = {}
     if reasoning:
@@ -114,4 +121,8 @@ async def run_agent(input_parameters: PreliminaryPlanInputArgs, reasoning: bool 
 
     query = f"Plan a trip with parameters: {input_parameters.model_dump_json()}"
     result = await agent.arun(query)
-    return result.content # type: ignore
+    proposition: ProposedPlans = result.content # type: ignore
+    if generate_images:
+        for plan in proposition.plans:
+            plan.base64_image_string = generate_image_for_plan(plan)
+    return proposition
