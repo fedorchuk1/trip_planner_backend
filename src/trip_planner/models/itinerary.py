@@ -25,7 +25,8 @@ class DayPlan(BaseModel):
 
 class CityPlan(BaseModel):
     city: str = Field(..., description="City of the plan")
-    date_range: str = Field(..., description="Date range of the plan")
+    arrival_date: str = Field(..., description="Arrival date of the city in YYYY-MM-DD format")
+    departure_date: str = Field(..., description="Departure date of the city in YYYY-MM-DD format")
     day_plans: list[DayPlan] = Field(..., description="List of day plans")
 
 

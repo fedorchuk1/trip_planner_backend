@@ -13,6 +13,11 @@ class PlanItineraryRequest(BaseModel):
     traveler_input: TravelerInput = Field(..., description="Travel planning input data")
 
 
+class RefineItineraryRequest(PlanItineraryRequest):
+    """Request model for the refine_itinerary endpoint"""
+    itinerary: Itinerary = Field(..., description="Generated itinerary")
+
+
 class PlanItineraryResponse(BaseModel):
     """Response model for the plan_itinerary endpoint"""
     conversation_id: str = Field(..., description="Conversation ID for tracking")

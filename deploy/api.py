@@ -1,14 +1,27 @@
 import uuid
 from datetime import datetime
+from textwrap import dedent
 
 from fastapi import FastAPI, HTTPException
+from phoenix.otel import register
 
 from trip_planner.itinerary_crew import run_team
 from trip_planner.flights_crew import run as run_flights_team
 from trip_planner.models.itinerary import Itinerary
+
 from trip_planner.models.flights import FlightRoutePlan
-from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse
+from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse, RefineItineraryRequest
 from trip_planner.preliminary_variations_crew import PreliminaryPlanInputArgs, ProposedPlans, run_agent, PreliminaryPlan
+
+
+# configure the Phoenix tracer
+tracer_provider = register(
+    endpoint="http://localhost:6006/v1/traces",
+    project_name="agno_trip_planner",
+    auto_instrument=True
+)
+
+
 
 app = FastAPI(title="Trip Planner API", version="0.1.0")
 
@@ -35,36 +48,39 @@ async def get_flights(request: FlightsRequest):
 
 @app.post("/plan_itinerary", response_model=PlanItineraryResponse)
 async def plan_itinerary(request: PlanItineraryRequest):
-    """Plan a trip using the itinerary planner crew"""
-    
+    """Plan a trip using the itinerary planner crew"""    
     conversation_id = request.conversation_id or str(uuid.uuid4())
-    
-    # try:
-    # Create itinerary crew and process
-    crew_inputs = {
-        'country': request.traveler_input.country,
-        'cities': ', '.join(request.traveler_input.cities),
-        'date_range': request.traveler_input.date_range,
-        'age': request.traveler_input.age,
-        'preferences': ', '.join(request.traveler_input.preferences or []),
-        'constraints': ', '.join(request.traveler_input.constraints or [])
-    }
-    
-    itinerary: Itinerary = await run_team(crew_inputs)
+    try:
+        input_query = f"Plan a trip with parameters: {request.traveler_input.model_dump_json()}"
+        itinerary: Itinerary = await run_team(input_query)
 
-    return PlanItineraryResponse(
-        conversation_id=conversation_id,
-        itinerary=itinerary,
-        message="Trip planning completed successfully",
-        timestamp=datetime.now()
-    )
+        return PlanItineraryResponse(
+            conversation_id=conversation_id,
+            itinerary=itinerary,
+            message="Trip planning completed successfully",
+            timestamp=datetime.now()
+        )
         
-    # except Exception as e:
-    #     print(e)
-    #     raise HTTPException(
-    #         status_code=500,
-    #         detail=f"Error processing itinerary: {str(e)}"
-    #     )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing itinerary: {str(e)}"
+        )
+    
+
+@app.post("/refine_itinerary", response_model=PlanItineraryResponse)
+async def refine_itinerary(request: RefineItineraryRequest):
+    """Refine the itinerary using the itinerary planner crew"""
+
+    query = dedent(f"""\
+        Refine the itinerary with the following traveler input:
+        {request.traveler_input}
+
+        Itinerary:
+        {request.itinerary}
+    """)
+    return await run_team(query)
 
 
 @app.post("/preliminary_plan", response_model=ProposedPlans)
