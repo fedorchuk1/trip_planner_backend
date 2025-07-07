@@ -2,7 +2,7 @@ import os
 import requests
 
 url = "https://api.getimg.ai/v1/flux-schnell/text-to-image"
-BEARER_KEY = os.environ.get("GETIMG_API_KEY_ILLIA")
+BEARER_KEY = os.environ.get("GETIMG_API_KEY")
 
 
 def generate_image(
