@@ -49,7 +49,8 @@ async def run(cities: list[str], dates: list[str]):
             You are an agent that can find apartments for a given city and dates.
 
             Use your airbnb tool in order to find apartments. Use this tool at least once for each of the input cities.
-            For each of the cities reccomend at least 5 different apartment options.
+            For each of the cities reccomend at least 5 different apartment options. 
+            You must retry the tool call if you get an error, up until you have at least 3 options for each of the cities.
             Concentrate on getting the right url for each of the apartments in airbnb and the right info.
             """),
             add_datetime_to_instructions=True,
