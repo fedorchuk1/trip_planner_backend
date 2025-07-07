@@ -4,12 +4,31 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 
 from trip_planner.itinerary_crew import run_team
-from trip_planner.crew_backup import ItineraryPlannerCrew
+from trip_planner.flights_crew import run as run_flights_team
 from trip_planner.models.itinerary import Itinerary
-from .models.api import PlanItineraryRequest, PlanItineraryResponse
+from trip_planner.models.flights import FlightsPlan
+from .models.api import PlanItineraryRequest, PlanItineraryResponse, FlightsRequest, FlightsResponse
 
 app = FastAPI(title="Trip Planner API", version="0.1.0")
 
+@app.post("/flights", response_model=FlightsResponse)
+async def get_flights(request: FlightsRequest):
+    """Get flights for a given itinerary. This shit can fail in response parsing."""
+    
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+    flights_inputs = {
+        "departure_date": request.departure_date,
+        "arrival_date": request.arrival_date,
+        "departure_city": request.departure_city,
+        "arrival_city": request.arrival_city
+    }
+    flights_plan: FlightsPlan = await run_flights_team(flights_inputs)
+   
+    return FlightsResponse(
+        conversation_id=conversation_id, 
+        flights_plan=flights_plan, 
+        message="Flights found successfully", 
+        timestamp=datetime.now())
 
 @app.post("/plan_itinerary", response_model=PlanItineraryResponse)
 async def plan_itinerary(request: PlanItineraryRequest):
