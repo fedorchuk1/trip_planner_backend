@@ -34,16 +34,11 @@ async def run(flight_cities: list[str], flight_dates: list[str]):
             - If there is no arrival date, then the arrival date is the day after the departure date.
             
             Use get_flights tool to find flights. Notice! You need to use the IATA code of the airports in the input cities in order to use the tool. 
-            
-            If there is only one route, then you can use ROUND_TRIP type of flight while calling the tool.
-
-            IF YOU ARE GOING TO USE ROUND_TRIP, ONLY USE ROUND_TRIP FOR THE FIRST FLIGHT, FOR THE REST OF THE FLIGHTS USE ONE_WAY.
         """),
         add_datetime_to_instructions=True,
         show_tool_calls=True,
         markdown=True,
         response_model=FlightsPlannerResponse,
-        reasoning=False
     )
     # query = f"Find flights for the following parameters: {input_parameters}"
     query = f"Find flights for the following routes:"
@@ -51,6 +46,8 @@ async def run(flight_cities: list[str], flight_dates: list[str]):
         query += f"\n- Departure city: {flight_cities[i]}, Arrival date: {flight_dates[i]}, Arrival city: {flight_cities[i+1]}"
     if len(flight_cities) > 2:
         query += f"\n- Departure city: {flight_cities[-1]}, Departure date: {flight_dates[-1]}, Arrival city: {flight_cities[0]}"
+    else:
+        query += f", Departure back date: {flight_dates[-1]}"
     response = await flights_agent.arun(query)
     return response.content 
 
