@@ -8,20 +8,14 @@ from agno.team import Team
 from mcp import StdioServerParameters
 from pydantic import BaseModel
 from agno.models.litellm import LiteLLM
+from agno.models.openai import OpenAIChat
 
 from trip_planner.tools.agno.flights import get_flights
 from trip_planner.models.flights import Flight, FlightsPlan, FlightsPlannerResponse
 
-llm = LiteLLM(
-    id="groq/deepseek-r1-distill-llama-70b",
-    request_params={
-        "num_retries": 3,
-    }
-)
-
 env = {
     **os.environ,
-    "SERPAPI_KEY": os.getenv("SERPAPI_KEY"),
+    "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
 }
 
 
@@ -29,7 +23,7 @@ async def run(flight_cities: list[str], flight_dates: list[str]):
     flights_agent = Agent(
         name="FlightsFinderAgent",
         role="Flights search agent",
-        model=llm,
+        model=OpenAIChat("gpt-4.1-nano"),
         tools=[get_flights],
         instructions=dedent("""\
             You are the best at searching flights for user.
@@ -41,8 +35,6 @@ async def run(flight_cities: list[str], flight_dates: list[str]):
             
             Use get_flights tool to find flights. Notice! You need to use the IATA code of the airports in the input cities in order to use the tool. 
             
-            For each of the routes reccomend at least 5 different flight options.
-            
             If there is only one route, then you can use ROUND_TRIP type of flight while calling the tool.
 
             IF YOU ARE GOING TO USE ROUND_TRIP, ONLY USE ROUND_TRIP FOR THE FIRST FLIGHT, FOR THE REST OF THE FLIGHTS USE ONE_WAY.
@@ -51,6 +43,7 @@ async def run(flight_cities: list[str], flight_dates: list[str]):
         show_tool_calls=True,
         markdown=True,
         response_model=FlightsPlannerResponse,
+        reasoning=False
     )
     # query = f"Find flights for the following parameters: {input_parameters}"
     query = f"Find flights for the following routes:"
