@@ -11,18 +11,9 @@ from agno.team import Team
 from mcp import StdioServerParameters
 from pydantic import BaseModel
 from agno.models.litellm import LiteLLM
+from agno.models.openai import OpenAIChat
 
 from trip_planner.models.hotels import HotelsPlannerResponse
-
-
-
-llm = LiteLLM(
-    id="groq/llama-3.3-70b-versatile",
-    request_params={
-        "num_retries": 3,
-    }
-)
-
 
 async def run(cities: list[str], dates: list[str]):
     # Define server parameters
@@ -42,7 +33,7 @@ async def run(cities: list[str], dates: list[str]):
         airbnb_agent = Agent(
             name="Airbnb",
             role="Airbnb Agent",
-            model=llm,
+            model=OpenAIChat("gpt-4.1-nano"),
             tools=[airbnb_tools],
             instructions=dedent("""\
             You are the best at searching apartments for user.
